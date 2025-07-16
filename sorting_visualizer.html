@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Array Sorting Visualizer</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f0f0f0;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        h1 {
+            color: #333;
+            margin-bottom: 30px;
+        }
+
+        .controls {
+            margin-bottom: 30px;
+        }
+
+        button {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            margin: 5px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #45a049;
+        }
+
+        button:disabled {
+            background-color: #cccccc;
+            cursor: not-allowed;
+        }
+
+        .array-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            height: 400px;
+            margin: 30px 0;
+            padding: 20px;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .array-bar {
+            width: 40px;
+            margin: 2px;
+            background-color: #3498db;
+            border-radius: 5px 5px 0 0;
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            color: white;
+            font-weight: bold;
+            transition: all 0.5s ease;
+            position: relative;
+        }
+
+        .array-bar.comparing {
+            background-color: #e74c3c;
+            transform: translateY(-10px);
+        }
+
+        .array-bar.swapping {
+            background-color: #f39c12;
+            transform: scale(1.1);
+        }
+
+        .array-bar.sorted {
+            background-color: #27ae60;
+        }
+
+        .array-bar.pivot {
+            background-color: #9b59b6;
+            transform: translateY(-15px);
+        }
+
+        .array-bar.heap-root {
+            background-color: #e67e22;
+            transform: translateY(-15px);
+        }
+
+        .array-bar.merging {
+            background-color: #16a085;
+            transform: translateY(-8px);
+        }
+
+        .array-bar.digit-highlight {
+            background-color: #8e44ad;
+            transform: scale(1.05);
+        }
+
+        .info {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px 0;
+        }
+
+        .speed-control {
+            margin: 20px 0;
+        }
+
+        .speed-slider {
+            width: 200px;
+            margin: 0 10px;
+        }
+
+        .input-section {
+            margin-bottom: 15px;
+            padding: 15px;
+            background-color: white;
+            border-radius: 5px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .input-section label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-weight: bold;
+            margin: 10px 0;
+            padding: 10px;
+            background-color: #ffe6e6;
+            border-radius: 5px;
+            display: none;
+        }
+
+        .swap-log {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            margin: 20px 0;
+            text-align: left;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .swap-log h4 {
+            margin-top: 0;
+            color: #333;
+            text-align: center;
+        }
+
+        .swap-entry {
+            padding: 8px;
+            margin: 5px 0;
+            background-color: #f8f9fa;
+            border-left: 4px solid #3498db;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+        }
+
+        .swap-entry.comparison {
+            border-left-color: #e74c3c;
+            background-color: #fff5f5;
+        }
+
+        .swap-entry.actual-swap {
+            border-left-color: #f39c12;
+            background-color: #fffbf0;
+        }
+
+        .swap-entry.no-swap {
+            border-left-color: #95a5a6;
+            background-color: #f8f9fa;
+        }
+
+        .clear-log-btn {
+            background-color: #e74c3c !important;
+            font-size: 14px;
+            padding: 8px 16px;
+        }
+
+        .clear-log-btn:hover {
+            background-color: #c0392b !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Array Sorting Visualizer</h1>
+        
+        <div class="controls">
+            <div class="input-section">
+                <label for="arrayInput">Enter 10 numbers (comma-separated):</label>
+                <input type="text" id="arrayInput" placeholder="e.g., 38,27,43,3,9,82,10,15,7,20" style="width: 300px; padding: 8px; margin: 5px; border: 1px solid #ccc; border-radius: 5px;">
+                <button onclick="setCustomArray()">Set Array</button>
+            </div>
+            <button onclick="generateNewArray()">Generate Random Array</button>
+            <button onclick="startBubbleSort()" id="bubbleBtn">Bubble Sort</button>
+            <button onclick="startSelectionSort()" id="selectionBtn">Selection Sort</button>
+            <button onclick="startInsertionSort()" id="insertionBtn">Insertion Sort</button>
+            <button onclick="startQuickSort()" id="quickBtn">Quick Sort</button>
+            <button onclick="startMergeSort()" id="mergeBtn">Merge Sort</button>
+            <button onclick="startHeapSort()" id="heapBtn">Heap Sort</button>
+            <button onclick="startRadixSort()" id="radixBtn">Radix Sort</button>
+            <button onclick="stopSorting()" id="stopBtn">Stop</button>
+        </div>
+
+        <div class="speed-control">
+            <label>Animation Speed: </label>
+            <input type="range" class="speed-slider" id="speedSlider" min="1" max="10" value="5">
+            <span id="speedValue">5</span>
+        </div>
+
+        <div class="array-container" id="arrayContainer">
+        </div>
+
+        <div class="error-message" id="errorMessage"></div>
+
+        <div class="info">
+            <h3 id="sortingInfo">Enter your own array or generate a random one to start visualization</h3>
+            <p id="sortingStats">Array Size: 10 | Comparisons: 0 | Swaps: 0</p>
+        </div>
+
+        <div class="swap-log">
+            <h4>🔄 Sorting Operations Log 
+                <button onclick="clearSwapLog()" class="clear-log-btn">Clear Log</button>
+            </h4>
+            <div id="swapLogContent">
+                <p style="color: #666; font-style: italic; text-align: center;">Start sorting to see detailed operations...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let array = [];
+        let isAnimating = false;
+        let animationSpeed = 500;
+        let comparisons = 0;
+        let swaps = 0;
+        let currentAlgorithm = '';
+        let stepCounter = 0;
+
+        // Initialize
+        document.getElementById('speedSlider').addEventListener('input', function() {
+            animationSpeed = 1100 - (this.value * 100);
+            document.getElementById('speedValue').textContent = this.value;
+        });
+
+        function generateNewArray() {
+            if (isAnimating) return;
+            
+            // Generate random array of 10 elements
+            array = [];
+            for (let i = 0; i < 10; i++) {
+                array.push(Math.floor(Math.random() * 90) + 5); // Random numbers between 5-94
+            }
+            
+            comparisons = 0;
+            swaps = 0;
+            updateStats();
+            renderArray();
+            hideError();
+            updateInfo("Random array generated! Choose a sorting algorithm.");
+            clearSwapLog();
+            
+            // Update input field to show current array
+            document.getElementById('arrayInput').value = array.join(',');
+        }
+
+        function setCustomArray() {
+            if (isAnimating) return;
+            
+            const input = document.getElementById('arrayInput').value.trim();
+            
+            if (!input) {
+                showError("Please enter an array!");
+                return;
+            }
+            
+            // Parse input
+            const inputArray = input.split(',').map(str => {
+                const num = parseInt(str.trim());
+                if (isNaN(num)) {
+                    throw new Error(`"${str.trim()}" is not a valid number`);
+                }
+                if (num < 1 || num > 100) {
+                    throw new Error(`Number ${num} should be between 1 and 100`);
+                }
+                return num;
+            });
+            
+            // Validate array size
+            if (inputArray.length !== 10) {
+                showError(`Array must contain exactly 10 numbers. You entered ${inputArray.length} numbers.`);
+                return;
+            }
+            
+            try {
+                array = inputArray;
+                comparisons = 0;
+                swaps = 0;
+                updateStats();
+                renderArray();
+                hideError();
+                updateInfo("Custom array set! Choose a sorting algorithm.");
+                clearSwapLog();
+            } catch (error) {
+                showError(error.message);
+            }
+        }
+
+        function showError(message) {
+            const errorDiv = document.getElementById('errorMessage');
+            errorDiv.textContent = message;
+            errorDiv.style.display = 'block';
+            setTimeout(() => {
+                hideError();
+            }, 5000);
+        }
+
+        function hideError() {
+            document.getElementById('errorMessage').style.display = 'none';
+        }
+
+        function clearSwapLog() {
+            stepCounter = 0;
+            document.getElementById('swapLogContent').innerHTML = 
+                '<p style="color: #666; font-style: italic; text-align: center;">Start sorting to see detailed operations...</p>';
+        }
+
+        function addToSwapLog(message, type = 'comparison') {
+            stepCounter++;
+            const logContent = document.getElementById('swapLogContent');
+            
+            // Clear the initial message if this is the first log entry
+            if (stepCounter === 1) {
+                logContent.innerHTML = '';
+            }
+            
+            const entry = document.createElement('div');
+            entry.className = `swap-entry ${type}`;
+            entry.innerHTML = `<strong>Step ${stepCounter}:</strong> ${message}`;
+            
+            logContent.appendChild(entry);
+            logContent.scrollTop = logContent.scrollHeight; // Auto-scroll to bottom
+        }
+
+        function renderArray() {
+            const container = document.getElementById('arrayContainer');
+            container.innerHTML = '';
+            
+            array.forEach((value, index) => {
+                const bar = document.createElement('div');
+                bar.className = 'array-bar';
+                bar.style.height = `${value * 4}px`;
+                bar.textContent = value;
+                bar.id = `bar-${index}`;
+                container.appendChild(bar);
+            });
+        }
+
+        function updateInfo(message) {
+            document.getElementById('sortingInfo').textContent = message;
+        }
+
+        function updateStats() {
+            document.getElementById('sortingStats').textContent = 
+                `Array Size: ${array.length} | Comparisons: ${comparisons} | Swaps: ${swaps}`;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function disableButtons() {
+            isAnimating = true;
+            ['bubbleBtn', 'selectionBtn', 'insertionBtn', 'quickBtn', 'mergeBtn', 'heapBtn', 'radixBtn'].forEach(id => {
+                document.getElementById(id).disabled = true;
+            });
+        }
+
+        function enableButtons() {
+            isAnimating = false;
+            ['bubbleBtn', 'selectionBtn', 'insertionBtn', 'quickBtn', 'mergeBtn', 'heapBtn', 'radixBtn'].forEach(id => {
+                document.getElementById(id).disabled = false;
+            });
+        }
+
+        function stopSorting() {
+            isAnimating = false;
+            enableButtons();
+            // Reset all bar colors
+            document.querySelectorAll('.array-bar').forEach(bar => {
+                bar.className = 'array-bar';
+            });
+            updateInfo("Sorting stopped!");
+            addToSwapLog(`❌ ${currentAlgorithm} was stopped by user`, 'no-swap');
+        }
+
+        async function highlightComparison(i, j) {
+            if (!isAnimating) return;
+            
+            comparisons++;
+            updateStats();
+            
+            const bar1 = document.getElementById(`bar-${i}`);
+            const bar2 = document.getElementById(`bar-${j}`);
+            
+            bar1.classList.add('comparing');
+            bar2.classList.add('comparing');
+            
+            // Log the comparison
+            addToSwapLog(
+                `📊 Comparing positions [${i}] and [${j}]: ${array[i]} vs ${array[j]} → ${array[i] > array[j] ? `${array[i]} > ${array[j]} (will swap)` : array[i] < array[j] ? `${array[i]} < ${array[j]} (no swap needed)` : `${array[i]} = ${array[j]} (equal values)`}`,
+                'comparison'
+            );
+            
+            await sleep(animationSpeed);
+            
+            bar1.classList.remove('comparing');
+            bar2.classList.remove('comparing');
+        }
+
+        async function highlightSwap(i, j) {
+            if (!isAnimating) return;
+            
+            swaps++;
+            updateStats();
+            
+            const bar1 = document.getElementById(`bar-${i}`);
+            const bar2 = document.getElementById(`bar-${j}`);
+            
+            // Log the swap before it happens
+            const beforeVal1 = array[i];
+            const beforeVal2 = array[j];
+            
+            bar1.classList.add('swapping');
+            bar2.classList.add('swapping');
+            
+            await sleep(animationSpeed);
+            
+            // Swap the values
+            [array[i], array[j]] = [array[j], array[i]];
+            
+            // Log the actual swap
+            addToSwapLog(
+                `🔄 SWAP: Position [${i}] ↔ Position [${j}] | Values: ${beforeVal1} ↔ ${beforeVal2} | Result: [${i}]=${array[i]}, [${j}]=${array[j]}`,
+                'actual-swap'
+            );
+            
+            // Update the display
+            bar1.style.height = `${array[i] * 4}px`;
+            bar1.textContent = array[i];
+            bar2.style.height = `${array[j] * 4}px`;
+            bar2.textContent = array[j];
+            
+            await sleep(animationSpeed / 2);
+            
+            bar1.classList.remove('swapping');
+            bar2.classList.remove('swapping');
+        }
+
+        async function markSorted(index) {
+            if (!isAnimating) return;
+            const bar = document.getElementById(`bar-${index}`);
+            bar.classList.add('sorted');
+            await sleep(animationSpeed / 4);
+        }
+
+        async function startBubbleSort() {
+            if (isAnimating) return;
+            currentAlgorithm = 'Bubble Sort';
+            disableButtons();
+            updateInfo("Running Bubble Sort...");
+            clearSwapLog();
+            addToSwapLog(`🚀 Starting ${currentAlgorithm} on array: [${array.join(', ')}]`, 'no-swap');
+            
+            const n = array.length;
+            for (let i = 0; i < n - 1 && isAnimating; i++) {
+                addToSwapLog(`🔄 Pass ${i + 1}: Comparing adjacent elements, largest will bubble to position ${n - 1 - i}`, 'no-swap');
+                for (let j = 0; j < n - i - 1 && isAnimating; j++) {
+                    await highlightComparison(j, j + 1);
+                    
+                    if (array[j] > array[j + 1]) {
+                        await highlightSwap(j, j + 1);
+                    } else {
+                        addToSwapLog(`✅ No swap needed: ${array[j]} ≤ ${array[j + 1]}`, 'no-swap');
+                    }
+                }
+                await markSorted(n - 1 - i);
+                addToSwapLog(`✨ Element ${array[n - 1 - i]} is now in its correct position [${n - 1 - i}]`, 'no-swap');
+            }
+            
+            if (isAnimating) {
+                await markSorted(0);
+                updateInfo("Bubble Sort completed!");
+                addToSwapLog(`🎉 ${currentAlgorithm} completed! Final sorted array: [${array.join(', ')}]`, 'no-swap');
+            }
+            enableButtons();
+        }
+
+        async function startSelectionSort() {
+            if (isAnimating) return;
+            currentAlgorithm = 'Selection Sort';
+            disableButtons();
+            updateInfo("Running Selection Sort...");
+            clearSwapLog();
+            addToSwapLog(`🚀 Starting ${currentAlgorithm} on array: [${array.join(', ')}]`, 'no-swap');
+            
+            const n = array.length;
+            for (let i = 0; i < n - 1 && isAnimating; i++) {
+                let minIndex = i;
+                addToSwapLog(`🔍 Pass ${i + 1}: Finding minimum element in unsorted portion [${i}...${n-1}]`, 'no-swap');
+                addToSwapLog(`📍 Current minimum candidate: ${array[minIndex]} at position [${minIndex}]`, 'no-swap');
+                
+                for (let j = i + 1; j < n && isAnimating; j++) {
+                    await highlightComparison(minIndex, j);
+                    
+                    if (array[j] < array[minIndex]) {
+                        addToSwapLog(`🔄 New minimum found: ${array[j]} < ${array[minIndex]} (updating minimum index to ${j})`, 'no-swap');
+                        minIndex = j;
+                    } else {
+                        addToSwapLog(`✅ ${array[j]} ≥ ${array[minIndex]} (keeping current minimum)`, 'no-swap');
+                    }
+                }
+                
+                if (minIndex !== i) {
+                    addToSwapLog(`🎯 Minimum element ${array[minIndex]} found at position [${minIndex}], moving to sorted position [${i}]`, 'no-swap');
+                    await highlightSwap(i, minIndex);
+                } else {
+                    addToSwapLog(`✨ Element ${array[i]} at position [${i}] is already the minimum (no swap needed)`, 'no-swap');
+                }
+                await markSorted(i);
+                addToSwapLog(`✅ Position [${i}] is now sorted with value ${array[i]}`, 'no-swap');
+            }
+            
+            if (isAnimating) {
+                await markSorted(n - 1);
+                updateInfo("Selection Sort completed!");
+                addToSwapLog(`🎉 ${currentAlgorithm} completed! Final sorted array: [${array.join(', ')}]`, 'no-swap');
+            }
+            enableButtons();
+        }
+
+        async function startInsertionSort() {
+            if (isAnimating) return;
+            currentAlgorithm = 'Insertion Sort';
+            disableButtons();
+            updateInfo("Running Insertion Sort...");
+            clearSwapLog();
+            addToSwapLog(`🚀 Starting ${currentAlgorithm} on array: [${array.join(', ')}]`, 'no-swap');
+            
+            const n = array.length;
+            await markSorted(0);
+            addToSwapLog(`✅ Element ${array[0]} at position [0] is considered sorted (single element)`, 'no-swap');
+            
+            for (let i = 1; i < n && isAnimating; i++) {
+                let key = array[i];
+                let j = i - 1;
+                addToSwapLog(`🔄 Pass ${i}: Inserting element ${key} from position [${i}] into sorted portion [0...${i-1}]`, 'no-swap');
+                
+                while (j >= 0 && isAnimating) {
+                    await highlightComparison(j, j + 1);
+                    
+                    if (array[j] > key) {
+                        addToSwapLog(`➡️ ${array[j]} > ${key}, shifting ${array[j]} one position right`, 'no-swap');
+                        await highlightSwap(j, j + 1);
+                        j--;
+                    } else {
+                        addToSwapLog(`✅ ${array[j]} ≤ ${key}, found correct position for ${key}`, 'no-swap');
+                        break;
+                    }
+                }
+                await markSorted(i);
+                addToSwapLog(`✨ Element ${array[i]} is now in its correct position within sorted portion [0...${i}]`, 'no-swap');
+            }
+            
+            if (isAnimating) {
+                updateInfo("Insertion Sort completed!");
+                addToSwapLog(`🎉 ${currentAlgorithm} completed! Final sorted array: [${array.join(', ')}]`, 'no-swap');
+            }
+            enableButtons();
+        }
+
+        async function startQuickSort() {
+            if (isAnimating) return;
+            currentAlgorithm = 'Quick Sort';
+            disableButtons();
+            updateInfo("Running Quick Sort...");
+            clearSwapLog();
+            addToSwapLog(`🚀 Starting ${currentAlgorithm} on array: [${array.join(', ')}]`, 'no-swap');
+            
+            await quickSort(0, array.length - 1);
+            
+            if (isAnimating) {
+                // Mark all as sorted
+                for (let i = 0; i < array.length; i++) {
+                    await markSorted(i);
+                }
+                updateInfo("Quick Sort completed!");
+                addToSwapLog(`🎉 ${currentAlgorithm} completed! Final sorted array: [${array.join(', ')}]`, 'no-swap');
+            }
+            enableButtons();
+        }
+
+        async function quickSort(low, high) {
+            if (low < high && isAnimating) {
+                addToSwapLog(`🔍 Dividing subarray [${low}...${high}]: [${array.slice(low, high + 1).join(', ')}]`, 'no-swap');
+                let pi = await partition(low, high);
+                addToSwapLog(`📍 Pivot ${array[pi]} is now in correct position [${pi}]. Dividing into left [${low}...${pi-1}] and right [${pi+1}...${high}]`, 'no-swap');
+                await quickSort(low, pi - 1);
+                await quickSort(pi + 1, high);
+            }
+        }
+
+        async function partition(low, high) {
+            let pivot = array[high];
+            let i = low - 1;
+            
+            addToSwapLog(`🎯 Partitioning with pivot = ${pivot} at position [${high}]`, 'no-swap');
+            
+            // Highlight pivot
+            const pivotBar = document.getElementById(`bar-${high}`);
+            pivotBar.classList.add('pivot');
+            
+            for (let j = low; j < high && isAnimating; j++) {
+                await highlightComparison(j, high);
+                
+                if (array[j] <= pivot) {
+                    i++;
+                    addToSwapLog(`📊 ${array[j]} ≤ ${pivot} (pivot), moving to left partition`, 'no-swap');
+                    if (i !== j) {
+                        addToSwapLog(`🔄 Moving ${array[j]} from position [${j}] to left partition at [${i}]`, 'no-swap');
+                        await highlightSwap(i, j);
+                    } else {
+                        addToSwapLog(`✅ ${array[j]} already in correct position [${i}] for left partition`, 'no-swap');
+                    }
+                } else {
+                    addToSwapLog(`➡️ ${array[j]} > ${pivot} (pivot), stays in right partition at [${j}]`, 'no-swap');
+                }
+            }
+            
+            addToSwapLog(`🎯 Placing pivot ${pivot} in its final position between partitions`, 'no-swap');
+            await highlightSwap(i + 1, high);
+            pivotBar.classList.remove('pivot');
+            
+            return i + 1;
+        }
+
+        async function startMergeSort() {
+            if (isAnimating) return;
+            currentAlgorithm = 'Merge Sort';
+            disableButtons();
+            updateInfo("Running Merge Sort...");
+            clearSwapLog();
+            addToSwapLog(`🚀 Starting ${currentAlgorithm} on array: [${array.join(', ')}]`, 'no-swap');
+            
+            await mergeSort(0, array.length - 1);
+            
+            if (isAnimating) {
+                // Mark all as sorted
+                for (let i = 0; i < array.length; i++) {
+                    await markSorted(i);
+                }
+                updateInfo("Merge Sort completed!");
+                addToSwapLog(`🎉 ${currentAlgorithm} completed! Final sorted array: [${array.join(', ')}]`, 'no-swap');
+            }
+            enableButtons();
+        }
+
+        async function mergeSort(left, right) {
+            if (left < right && isAnimating) {
+                const mid = Math.floor((left + right) / 2);
+                addToSwapLog(`🔍 Dividing array [${left}...${right}] into left [${left}...${mid}] and right [${mid+1}...${right}]`, 'no-swap');
+                
+                await mergeSort(left, mid);
+                await mergeSort(mid + 1, right);
+                await merge(left, mid, right);
+            }
+        }
+
+        async function merge(left, mid, right) {
+            if (!isAnimating) return;
+            
+            addToSwapLog(`🔄 Merging subarrays [${left}...${mid}] and [${mid+1}...${right}]`, 'no-swap');
+            
+            // Highlight the merging section
+            for (let k = left; k <= right; k++) {
+                const bar = document.getElementById(`bar-${k}`);
+                bar.classList.add('merging');
+            }
+            
+            const leftArr = array.slice(left, mid + 1);
+            const rightArr = array.slice(mid + 1, right + 1);
+            
+            addToSwapLog(`📊 Left subarray: [${leftArr.join(', ')}], Right subarray: [${rightArr.join(', ')}]`, 'no-swap');
+            
+            let i = 0, j = 0, k = left;
+            
+            while (i < leftArr.length && j < rightArr.length && isAnimating) {
+                await highlightComparison(left + i, mid + 1 + j);
+                
+                if (leftArr[i] <= rightArr[j]) {
+                    addToSwapLog(`📍 ${leftArr[i]} ≤ ${rightArr[j]}, placing ${leftArr[i]} at position [${k}]`, 'no-swap');
+                    array[k] = leftArr[i];
+                    i++;
+                } else {
+                    addToSwapLog(`📍 ${rightArr[j]} < ${leftArr[i]}, placing ${rightArr[j]} at position [${k}]`, 'no-swap');
+                    array[k] = rightArr[j];
+                    j++;
+                }
+                
+                // Update display
+                const bar = document.getElementById(`bar-${k}`);
+                bar.style.height = `${array[k] * 4}px`;
+                bar.textContent = array[k];
+                
+                await sleep(animationSpeed);
+                k++;
+            }
+            
+            // Copy remaining elements
+            while (i < leftArr.length && isAnimating) {
+                addToSwapLog(`📍 Copying remaining element ${leftArr[i]} to position [${k}]`, 'no-swap');
+                array[k] = leftArr[i];
+                const bar = document.getElementById(`bar-${k}`);
+                bar.style.height = `${array[k] * 4}px`;
+                bar.textContent = array[k];
+                await sleep(animationSpeed / 2);
+                i++;
+                k++;
+            }
+            
+            while (j < rightArr.length && isAnimating) {
+                addToSwapLog(`📍 Copying remaining element ${rightArr[j]} to position [${k}]`, 'no-swap');
+                array[k] = rightArr[j];
+                const bar = document.getElementById(`bar-${k}`);
+                bar.style.height = `${array[k] * 4}px`;
+                bar.textContent = array[k];
+                await sleep(animationSpeed / 2);
+                j++;
+                k++;
+            }
+            
+            // Remove merging highlight
+            for (let k = left; k <= right; k++) {
+                const bar = document.getElementById(`bar-${k}`);
+                bar.classList.remove('merging');
+            }
+            
+            addToSwapLog(`✅ Merged section [${left}...${right}]: [${array.slice(left, right + 1).join(', ')}]`, 'no-swap');
+        }
+
+        async function startHeapSort() {
+            if (isAnimating) return;
+            currentAlgorithm = 'Heap Sort';
+            disableButtons();
+            updateInfo("Running Heap Sort...");
+            clearSwapLog();
+            addToSwapLog(`🚀 Starting ${currentAlgorithm} on array: [${array.join(', ')}]`, 'no-swap');
+            
+            const n = array.length;
+            
+            // Build max heap
+            addToSwapLog(`🏗️ Building max heap from bottom up...`, 'no-swap');
+            for (let i = Math.floor(n / 2) - 1; i >= 0 && isAnimating; i--) {
+                await heapify(n, i);
+            }
+            addToSwapLog(`✅ Max heap built! Root element ${array[0]} is the maximum`, 'no-swap');
+            
+            // Extract elements one by one
+            for (let i = n - 1; i > 0 && isAnimating; i--) {
+                addToSwapLog(`🔄 Extracting maximum ${array[0]} from heap root to position [${i}]`, 'no-swap');
+                
+                // Highlight root
+                const rootBar = document.getElementById(`bar-0`);
+                rootBar.classList.add('heap-root');
+                await sleep(animationSpeed);
+                
+                // Move current root to end
+                await highlightSwap(0, i);
+                rootBar.classList.remove('heap-root');
+                await markSorted(i);
+                
+                // Restore heap property
+                addToSwapLog(`🔧 Restoring heap property for reduced heap [0...${i-1}]`, 'no-swap');
+                await heapify(i, 0);
+            }
+            
+            if (isAnimating) {
+                await markSorted(0);
+                updateInfo("Heap Sort completed!");
+                addToSwapLog(`🎉 ${currentAlgorithm} completed! Final sorted array: [${array.join(', ')}]`, 'no-swap');
+            }
+            enableButtons();
+        }
+
+        async function heapify(n, i) {
+            if (!isAnimating) return;
+            
+            let largest = i;
+            let left = 2 * i + 1;
+            let right = 2 * i + 2;
+            
+            addToSwapLog(`🔍 Heapifying subtree rooted at [${i}] (value: ${array[i]})`, 'no-swap');
+            
+            // Check if left child exists and is greater than root
+            if (left < n) {
+                await highlightComparison(left, largest);
+                if (array[left] > array[largest]) {
+                    addToSwapLog(`📊 Left child ${array[left]} > parent ${array[largest]}, updating largest to [${left}]`, 'no-swap');
+                    largest = left;
+                } else {
+                    addToSwapLog(`✅ Left child ${array[left]} ≤ parent ${array[largest]}`, 'no-swap');
+                }
+            }
+            
+            // Check if right child exists and is greater than largest so far
+            if (right < n) {
+                await highlightComparison(right, largest);
+                if (array[right] > array[largest]) {
+                    addToSwapLog(`📊 Right child ${array[right]} > current largest ${array[largest]}, updating largest to [${right}]`, 'no-swap');
+                    largest = right;
+                } else {
+                    addToSwapLog(`✅ Right child ${array[right]} ≤ current largest ${array[largest]}`, 'no-swap');
+                }
+            }
+            
+            // If largest is not root, swap and continue heapifying
+            if (largest !== i) {
+                addToSwapLog(`🔄 Swapping parent [${i}] with largest child [${largest}] to maintain heap property`, 'no-swap');
+                await highlightSwap(i, largest);
+                await heapify(n, largest);
+            } else {
+                addToSwapLog(`✅ Heap property satisfied at node [${i}]`, 'no-swap');
+            }
+        }
+
+        async function startRadixSort() {
+            if (isAnimating) return;
+            currentAlgorithm = 'Radix Sort';
+            disableButtons();
+            updateInfo("Running Radix Sort...");
+            clearSwapLog();
+            addToSwapLog(`🚀 Starting ${currentAlgorithm} on array: [${array.join(', ')}]`, 'no-swap');
+            
+            // Find the maximum number to know number of digits
+            const max = Math.max(...array);
+            addToSwapLog(`🔍 Maximum element is ${max}, which has ${max.toString().length} digit(s)`, 'no-swap');
+            
+            // Do counting sort for every digit
+            for (let exp = 1; Math.floor(max / exp) > 0 && isAnimating; exp *= 10) {
+                const digit = Math.log10(exp);
+                addToSwapLog(`🔢 Sorting by digit position ${digit + 1} (${exp === 1 ? 'units' : exp === 10 ? 'tens' : 'hundreds'} place)`, 'no-swap');
+                await countingSortByDigit(exp);
+                addToSwapLog(`✅ Sorted by digit position ${digit + 1}: [${array.join(', ')}]`, 'no-swap');
+            }
+            
+            if (isAnimating) {
+                // Mark all as sorted
+                for (let i = 0; i < array.length; i++) {
+                    await markSorted(i);
+                }
+                updateInfo("Radix Sort completed!");
+                addToSwapLog(`🎉 ${currentAlgorithm} completed! Final sorted array: [${array.join(', ')}]`, 'no-swap');
+            }
+            enableButtons();
+        }
+
+        async function countingSortByDigit(exp) {
+            if (!isAnimating) return;
+            
+            const n = array.length;
+            const output = new Array(n);
+            const count = new Array(10).fill(0);
+            
+            // Highlight all bars for digit extraction
+            for (let i = 0; i < n; i++) {
+                const bar = document.getElementById(`bar-${i}`);
+                bar.classList.add('digit-highlight');
+            }
+            
+            // Count occurrences of each digit
+            addToSwapLog(`📊 Extracting digits and counting frequencies...`, 'no-swap');
+            for (let i = 0; i < n; i++) {
+                const digit = Math.floor(array[i] / exp) % 10;
+                count[digit]++;
+                addToSwapLog(`🔢 Element ${array[i]} has digit ${digit} at current position`, 'comparison');
+                await sleep(animationSpeed / 2);
+            }
+            
+            addToSwapLog(`📈 Digit frequencies: ${count.map((c, i) => `${i}:${c}`).filter(x => !x.endsWith(':0')).join(', ')}`, 'no-swap');
+            
+            // Change count[i] to actual position of this digit in output[]
+            for (let i = 1; i < 10; i++) {
+                count[i] += count[i - 1];
+            }
+            
+            // Build the output array
+            addToSwapLog(`🔄 Building output array in stable order...`, 'no-swap');
+            for (let i = n - 1; i >= 0 && isAnimating; i--) {
+                const digit = Math.floor(array[i] / exp) % 10;
+                const position = count[digit] - 1;
+                output[position] = array[i];
+                count[digit]--;
+                addToSwapLog(`📍 Placing ${array[i]} (digit ${digit}) at output position ${position}`, 'actual-swap');
+                await sleep(animationSpeed / 2);
+            }
+            
+            // Copy the output array to array[]
+            addToSwapLog(`📋 Copying sorted result back to main array...`, 'no-swap');
+            for (let i = 0; i < n && isAnimating; i++) {
+                array[i] = output[i];
+                const bar = document.getElementById(`bar-${i}`);
+                bar.style.height = `${array[i] * 4}px`;
+                bar.textContent = array[i];
+                bar.classList.remove('digit-highlight');
+                await sleep(animationSpeed / 3);
+            }
+        }
+
+        // Initialize the array on page load
+        generateNewArray();
+
+        // Allow Enter key to set custom array
+        document.getElementById('arrayInput').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                setCustomArray();
+            }
+        });
+    </script>
+</body>
+</html>
